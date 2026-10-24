@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WTDA — Workforce Training & Development for Africa</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+  :root {
+    --navy:      #0D1F3C;
+    --navy-mid:  #152B50;
+    --gold:      #F0B429;
+    --gold-dim:  #C8941E;
+    --slate:     #8AA0B8;
+    --off-white: #EEF2F7;
+    --white:     #FFFFFF;
+    --text-body: #D4DDE8;
+    --text-muted:#8AA0B8;
+    --accent:    #29B6F0;
+    --border:    rgba(240,180,41,0.25);
+
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body:    'Barlow', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--text-body);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── ANNOTATION SYSTEM ────────────────────────────────────────
+     Yellow sticky-note style comments for team review              */
+  .annot {
+    display: block;
+    background: #FFF9C4;
+    color: #5A4A00;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border-left: 4px solid var(--gold);
+    margin: 12px 0 0 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .annot::before { content: "✏️  TEAM NOTE: "; font-weight: 800; }
+
+  /* ─── LAYOUT HELPERS ───────────────────────────────────────── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+  .section   { padding: 96px 0; }
+  .section--alt { background: var(--navy-mid); }
+
+  /* ─── EYEBROW LABELS ───────────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* ─── TYPOGRAPHY ────────────────────────────────────────────── */
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    line-height: 1.05;
+    color: var(--white);
+  }
+  h1 { font-size: clamp(52px, 8vw, 96px); font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: clamp(36px, 5vw, 56px); font-weight: 700; }
+  h3 { font-size: clamp(22px, 3vw, 30px); font-weight: 700; }
+  p  { color: var(--text-body); }
+
+  /* ─── GOLD UNDERLINE / HIGHLIGHT ───────────────────────────── */
+  .highlight {
+    color: var(--gold);
+  }
+  .underline-gold {
+    display: inline;
+    background: linear-gradient(0deg, var(--gold) 3px, transparent 3px);
+    padding-bottom: 4px;
+  }
+
+  /* ─── NAV ───────────────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,31,60,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    background: var(--gold);
+    color: var(--navy) !important;
+    padding: 8px 20px;
+    font-weight: 700 !important;
+    color: var(--navy);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--gold-dim); }
+
+  /* ─── HERO ──────────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background: var(--navy);
+    padding: 120px 0 80px;
+  }
+  /* Blueprint grid overlay — the signature element */
+  #hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(240,180,41,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,180,41,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+  #hero::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0; right: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent, var(--navy));
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hero-h1 { margin-bottom: 8px; }
+  .hero-h1-sub {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 32px;
+    display: block;
+  }
+  .hero-lead {
+    max-width: 680px;
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-body);
+    margin-bottom: 48px;
+  }
+  .hero-lockup {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-transform: uppercase;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-bottom: 40px;
+    display: inline-block;
+  }
+  .hero-lockup span { color: var(--slate); margin: 0 12px; }
+  .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-dim); }
+  .btn-outline {
+    border: 1px solid var(--slate);
+    color: var(--slate);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Hero stats strip */
+  .hero-stats {
+    display: flex;
+    gap: 0;
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+  }
+  .hero-stat {
+    flex: 1;
+    padding: 28px 24px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .hero-stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  /* ─── PROBLEM SECTION ──────────────────────────────────────── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .problem-cell {
+    background: var(--navy);
+    padding: 40px;
+  }
+  .problem-cell--dark { background: var(--navy-mid); }
+  .problem-cell h3 {
+    font-size: 22px;
+    color: var(--slate);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    font-family: var(--font-display);
+  }
+  .problem-cell h3.problem { color: #E57373; }
+  .problem-cell h3.solution { color: var(--gold); }
+  .vs-divider {
+    background: var(--navy-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .vs-text {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--border);
+    writing-mode: vertical-rl;
+  }
+  .check-list { list-style: none; }
+  .check-list li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    color: var(--text-body);
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .check-list li:last-child { border-bottom: none; }
+  .check-list li::before { content: '✕'; position: absolute; left: 0; color: #E57373; font-size: 12px; top: 10px; }
+  .check-list.pro li::before { content: '✓'; color: var(--gold); }
+
+  /* ─── MODEL / HOW IT WORKS ─────────────────────────────────── */
+  .model-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .model-step {
+    background: var(--navy-mid);
+    padding: 40px 32px;
+    position: relative;
+  }
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 80px;
+    font-weight: 800;
+    color: rgba(240,180,41,0.12);
+    line-height: 1;
+    position: absolute;
+    top: 16px; right: 20px;
+  }
+  .step-icon {
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .model-step h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: var(--white);
+  }
+  .model-step p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .model-step .step-tag {
+    margin-top: 16px;
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+  }
+
+  /* ─── TRAINING TRACKS ──────────────────────────────────────── */
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .track-card {
+    background: var(--navy);
+    padding: 32px 24px;
+    transition: background 0.2s;
+  }
+  .track-card:hover { background: var(--navy-mid); }
+  .track-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+  .track-card h3 { font-size: 18px; margin-bottom: 10px; color: var(--white); }
+  .track-card p { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+  .track-duration {
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ─── PATHWAY FLOW ─────────────────────────────────────────── */
+  .pathway-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .pathway-step {
+    flex: 1;
+    background: var(--navy-mid);
+    padding: 32px 24px;
+    position: relative;
+  }
+  .pathway-step::after {
+    content: '▶';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    font-size: 16px;
+    z-index: 2;
+  }
+  .pathway-step:last-child::after { display: none; }
+  .pathway-num {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .pathway-step h3 { font-size: 16px; margin-bottom: 8px; }
+  .pathway-step p { font-size: 12px; color: var(--text-muted); }
+  .pathway-step .duration {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  /* ─── OUTCOMES / IMPACT ────────────────────────────────────── */
+  .outcomes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .outcome-card {
+    background: var(--navy);
+    padding: 36px 28px;
+  }
+  .outcome-card.featured { background: var(--gold); }
+  .outcome-card.featured .outcome-label { color: var(--navy); }
+  .outcome-card.featured .outcome-title { color: var(--navy); }
+  .outcome-card.featured .outcome-desc { color: rgba(13,31,60,0.75); }
+  .outcome-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 16px;
+    display: block;
+  }
+  .outcome-num {
+    font-family: var(--font-display);
+    font-size: 52px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .outcome-card.featured .outcome-num { color: var(--navy); }
+  .outcome-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .outcome-desc { font-size: 13px; color: var(--text-muted); }
+
+  /* ─── VALUES ───────────────────────────────────────────────── */
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .value-card {
+    background: var(--navy-mid);
+    padding: 36px 32px;
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .value-card:hover {
+    border-left-color: var(--gold);
+    background: var(--navy);
+  }
+  .value-card h3 {
+    font-size: 16px;
+    color: var(--gold);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .value-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ─── PARTNERS SECTION ─────────────────────────────────────── */
+  .partners-strip {
+    margin-top: 56px;
+    border: 1px solid var(--border);
+    padding: 40px;
+  }
+  .partner-types {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    margin-top: 32px;
+  }
+  .partner-type {
+    border-top: 2px solid var(--border);
+    padding-top: 20px;
+  }
+  .partner-type-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: block;
+  }
+  .partner-type p { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+
+  /* ─── PILOT SECTION ────────────────────────────────────────── */
+  .pilot-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    margin-top: 56px;
+  }
+  .pilot-info {
+    background: var(--navy-mid);
+    padding: 48px 40px;
+  }
+  .pilot-info h3 { font-size: 28px; margin-bottom: 20px; color: var(--gold); }
+  .pilot-spec {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .pilot-spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pilot-spec-row:last-child { border-bottom: none; }
+  .spec-key {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+  .spec-val {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    text-align: right;
+  }
+  .pilot-timeline {
+    background: var(--navy);
+    padding: 48px 40px;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .timeline-marker {
+    width: 40px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .t-dot {
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .t-line { width: 1px; flex: 1; background: var(--border); margin-top: 4px; }
+  .t-period {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .timeline-content h4 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .timeline-content p { font-size: 13px; color: var(--text-muted); }
+
+  /* ─── CTA SECTION ──────────────────────────────────────────── */
+  #cta {
+    background: var(--navy-mid);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 96px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #cta::before {
+    content: 'WTDA';
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 300px;
+    font-weight: 800;
+    color: rgba(240,180,41,0.03);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  #cta .container { position: relative; z-index: 2; }
+  #cta h2 { margin-bottom: 20px; }
+  #cta p { font-size: 18px; color: var(--text-muted); margin-bottom: 40px; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* ─── FOOTER ───────────────────────────────────────────────── */
+  footer {
+    background: var(--navy);
+    border-top: 1px solid var(--border);
+    padding: 48px 0;
+  }
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  .footer-logo span { color: var(--gold); }
+  .footer-tagline {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-top: 4px;
+  }
+  .footer-contact { text-align: right; }
+  .footer-contact p { font-size: 13px; color: var(--slate); }
+  .footer-contact a { color: var(--gold); text-decoration: none; }
+
+  /* ─── PROTOTYPE BANNER ─────────────────────────────────────── */
+  .prototype-banner {
+    background: #1A0533;
+    border-bottom: 2px solid #9B59B6;
+    padding: 12px 32px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #CE93D8;
+  }
+  .prototype-banner strong { color: #E1BEE7; }
+
+  /* ─── RESPONSIVE ───────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .model-steps { grid-template-columns: 1fr; }
+    .tracks-grid { grid-template-columns: 1fr 1fr; }
+    .outcomes-grid { grid-template-columns: 1fr 1fr; }
+    .values-grid { grid-template-columns: 1fr; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .pilot-layout { grid-template-columns: 1fr; }
+    .partner-types { grid-template-columns: 1fr 1fr; }
+    .pathway-flow { flex-direction: column; }
+    .pathway-step::after { display: none; }
+    .hero-stats { flex-wrap: wrap; }
+    .hero-stat { min-width: 50%; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 0 20px; }
+    .tracks-grid { grid-template-columns: 1fr; }
+    .outcomes-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PROTOTYPE NOTICE ─────────────────────────────────────── -->
+<div class="prototype-banner">
+  <strong>⚠ Content Prototype for Team Review</strong> — This is a draft HTML mockup showing proposed website structure and content. Not a live site. Please annotate questions or changes.
+</div>
+
+<!-- ── NAVIGATION ────────────────────────────────────────────── -->
+<nav>
+  <div class="inner">
+    <a href="#hero" class="nav-logo">WT<span>D</span>A</a>
+    <ul class="nav-links">
+      <li><a href="#problem">The Problem</a></li>
+      <li><a href="#model">Our Model</a></li>
+      <li><a href="#tracks">Tracks</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#partners">Partners</a></li>
+      <li><a href="#pilot">Pilot</a></li>
+    </ul>
+    <a href="#cta" class="nav-cta">Get Involved</a>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Workforce Training &amp; Development for Africa</div>
+    <h1 class="hero-h1">Skills that<br>create jobs.</h1>
+    <span class="hero-h1-sub">Months, not years.</span>
+    <p class="hero-lead">
+      WTDA is an industry-led technical training initiative designed to tackle unemployment and underemployment across Africa. We deliver short-term, hands-on training aligned with employer needs and validated through stackable credentials — preparing job-ready technicians who can earn family-sustaining wages, quickly.
+    </p>
+    <div class="hero-lockup">
+      Short-term training <span>·</span> Stackable credentials <span>·</span> Skilled jobs
+    </div>
+    <div class="hero-ctas">
+      <a href="#model" class="btn-primary">See the Model</a>
+      <a href="#pilot" class="btn-outline">Nigeria Pilot →</a>
+    </div>
+    <span class="annot">TEAM: Does the hero headline "Skills that create jobs" capture the right tone? Alternative: "Africa's Technician Gap Ends Here." Consider which speaks best to your primary web audience — employers, funders, or trainees?</span>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="stat-num">70%</div>
+        <div class="stat-label">Hands-on training ratio</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">6</div>
+        <div class="stat-label">Months to job-readiness</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">8+</div>
+        <div class="stat-label">Technical trade tracks</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Safety incident tolerance</div>
+      </div>
+    </div>
+    <span class="annot">TEAM: The stats strip uses figures from the Blueprint. Once pilot data is available, these should be updated with real outcomes (placement %, cohort sizes, etc.).</span>
+  </div>
+</section>
+
+<!-- ── THE PROBLEM ────────────────────────────────────────────── -->
+<section id="problem" class="section section--alt">
+  <div class="container">
+    <span class="eyebrow">Why WTDA Exists</span>
+    <h2>Africa's education system<br>and its employers<br><span class="highlight">are not speaking.</span></h2>
+    <p style="max-width:620px; margin-top:20px;">Nigeria's TVET enrolment sits below 10% of tertiary education — while employers report graduates who lack hands-on skills, safety culture, and work-readiness. The bridge between academic training and real employment is broken.</p>
+
+    <div class="problem-grid">
+      <div class="problem-cell">
+        <h3 class="problem">The Status Quo</h3>
+        <ul class="check-list">
+          <li>Years-long, school-like and theoretical programmes</li>
+          <li>Isolated from industry — no employer co-design</li>
+          <li>Assessment by written exam only</li>
+          <li>Static curricula that don't reflect market demand</li>
+          <li>TVETs perceived as second-tier and under-resourced</li>
+          <li>Long time-to-productivity after hiring</li>
+        </ul>
+      </div>
+      <div class="problem-cell problem-cell--dark">
+        <h3 class="solution">The WTDA Blueprint</h3>
+        <ul class="check-list pro">
+          <li>Months-long, short-cycle &amp; stackable modules</li>
+          <li>Employers co-design competencies from day one</li>
+          <li>Performance-based portfolios &amp; certifications</li>
+          <li>Built for rapid iteration and replication</li>
+          <li>Workshop-first: hands-on before theory</li>
+          <li>Paid apprenticeships with employer mentors</li>
+        </ul>
+      </div>
+    </div>
+    <span class="annot">TEAM: "Status Quo vs WTDA Blueprint" — this mirrors a key slide from the Blueprint deck. Should we keep the direct contrast framing here, or soften the critique of existing systems to protect partner relationships with TVET institutions?</span>
+  </div>
+</section>
+
+<!-- ── THE MODEL ──────────────────────────────────────────────── -->
+<section id="model" class="section">
+  <div class="container">
+    <span class="eyebrow">The WTDA Model</span>
+    <h2>Industry-led.<br>Competency-based.<br><span class="highlight">Outcomes measured.</span></h2>
+    <p style="max-width:640px; margin-top:20px;">A public-private model that co-designs training with employers and verifies skills through practical assessments. Every element is engineered to prevent the programme from becoming theoretical or school-like.</p>
+
+    <div class="model-steps">
+      <div class="model-step">
+        <span class="step-num">01</span>
+        <span class="step-icon">🏭</span>
+        <h3>Employer-Led Demand &amp; Standards</h3>
+        <p>Sector councils define job roles and competency checklists. Employer Advisory Groups (EAGs) refresh demand signals quarterly and provide mentors for work-based learning.</p>
+        <span class="step-tag">Continuous</span>
+      </div>
+      <div class="model-step">
+        <span class="step-num">02</span>
+        <span class="step-icon">🔧</span>
+        <h3>Competency-Based Training Hubs</h3>
+        <p>Short, stackable modules: Foundation Core (2–4 weeks) followed by trade-specific Technical Tracks (8–16 weeks). 70% hands-on. Strict curriculum safeguards prevent drift toward theory.</p>
+        <span class="step-tag">Workshop-first</span>
+      </div>
+      <div class="model-step">
+        <span class="step-num">03</span>
+        <span class="step-icon">📋</span>
+        <h3>Paid Apprenticeships &amp; Placement</h3>
+        <p>Structured work-based learning at partner employer sites, with clear outcomes and conversion targets from apprenticeship to employment. Every trainee completes a Capstone Validation project.</p>
+        <span class="step-tag">Required pathway</span>
+      </div>
+      <div class="model-step">
+        <span class="step-num">04</span>
+        <span class="step-icon">🎓</span>
+        <h3>Stackable Credentials</h3>
+        <p>Digital badges, performance portfolios, and certifications aligned to national qualifications. Learners earn a credential quickly and return to advance their career as needed.</p>
+        <span class="step-tag">Nationally recognised</span>
+      </div>
+      <div class="model-step">
+        <span class="step-num">05</span>
+        <span class="step-icon">📊</span>
+        <h3>QA, Data &amp; Continuous Improvement</h3>
+        <p>Live dashboard tracking completion, placement, and retention. Weekly skills audits, monthly employer reviews, and anonymous learner feedback loops. Data-driven decisions at every level.</p>
+        <span class="step-tag">Transparent</span>
+      </div>
+      <div class="model-step">
+        <span class="step-num">06</span>
+        <span class="step-icon">📦</span>
+        <h3>The Replication Kit</h3>
+        <p>The pilot doesn't just graduate 60 technicians — it yields a scalable playbook: curriculum modules, assessment rubrics, instructor training materials, MVL equipment lists, and employer MOU templates.</p>
+        <span class="step-tag">Scalable</span>
+      </div>
+    </div>
+    <span class="annot">TEAM: Six model boxes currently. Consider whether to collapse to 4 for website clarity (grouping QA with employer standards, and Replication Kit with an "About Scale" page). Or keep all six — they each represent a real, distinct stage.</span>
+  </div>
+</section>
+
+<!-- ── LEARNER PATHWAY ─────────────────────────────────────────── -->
+<section class="section section--alt">
+  <div class="container">
+    <span class="eyebrow">The Learner Journey</span>
+    <h2>A single model,<br><span class="highlight">six clear stages.</span></h2>
+
+    <div class="pathway-flow">
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 1</span>
+        <h3>Intake</h3>
+        <p>Application + Audition Week screening: attendance, punctuality, aptitude — not standard tests.</p>
+        <div class="duration">2-Step Process</div>
+      </div>
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 2</span>
+        <h3>Foundation Core</h3>
+        <p>Safety culture, applied numeracy, digital essentials, technical communication, professionalism.</p>
+        <div class="duration">2–4 Weeks</div>
+      </div>
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 3</span>
+        <h3>Technical Track</h3>
+        <p>High-demand, trade-specific hands-on instruction. 70% practical, 30% guided theory.</p>
+        <div class="duration">8–16 Weeks</div>
+      </div>
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 4</span>
+        <h3>Work-Based Learning</h3>
+        <p>Structured placement with employer partners. Real tasks, real tools, employer mentors.</p>
+        <div class="duration">8–24 Weeks</div>
+      </div>
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 5</span>
+        <h3>Capstone Validation</h3>
+        <p>Real-world build, repair, or installation project. Scored by instructors and employer assessors.</p>
+        <div class="duration">Non-Negotiable Gate</div>
+      </div>
+      <div class="pathway-step">
+        <span class="pathway-num">Stage 6</span>
+        <h3>Transition Support</h3>
+        <p>Job matching, interview practice, or microenterprise kits for self-employment pathways.</p>
+        <div class="duration">Placement &amp; Beyond</div>
+      </div>
+    </div>
+    <span class="annot">TEAM: This flow mirrors Slide 5 of the Blueprint exactly. For web, should there be a separate "For Learners" page that expands each stage with eligibility criteria, what to bring, etc.? Especially important if the website will drive trainee applications.</span>
+  </div>
+</section>
+
+<!-- ── TRAINING TRACKS ────────────────────────────────────────── -->
+<section id="tracks" class="section">
+  <div class="container">
+    <span class="eyebrow">Training Tracks</span>
+    <h2>High-demand sectors.<br><span class="highlight">Employer-verified skills.</span></h2>
+    <p style="max-width:640px; margin-top:20px;">Initial tracks are selected based on employer demand mapping. The Nigeria pilot will select a maximum of 2 tracks to maintain quality and focus. All tracks follow the same workshop-first, 70/30 hands-on model.</p>
+
+    <div class="tracks-grid">
+      <div class="track-card">
+        <span class="track-icon">⚡</span>
+        <h3>Electrical &amp; Solar PV</h3>
+        <p>Installation, maintenance, and fault-finding for electrical systems and solar photovoltaic energy. High demand across power and energy sectors.</p>
+        <div class="track-duration">Power &amp; Energy</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🔩</span>
+        <h3>Industrial Maintenance</h3>
+        <p>Electrical and mechanical maintenance for manufacturing and industrial facilities. Targets technician shortages slowing production growth.</p>
+        <div class="track-duration">Manufacturing</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🚗</span>
+        <h3>Automotive &amp; Transport</h3>
+        <p>Fleet maintenance, diagnostics, and repair. Addresses critical technician gaps in transport and logistics across the continent.</p>
+        <div class="track-duration">Transport / Logistics</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🌐</span>
+        <h3>ICT Field Support</h3>
+        <p>Network installation, device support, and IT field service. High demand from telecoms, fintech, and digital infrastructure expansion.</p>
+        <div class="track-duration">ICT / Field Services</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🏗️</span>
+        <h3>Construction Trades</h3>
+        <p>Construction finishing, trades support, and safety/QA roles. Aligned with infrastructure delivery priorities and urban growth.</p>
+        <div class="track-duration">Construction</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">❄️</span>
+        <h3>Refrigeration &amp; AC</h3>
+        <p>Installation and servicing of refrigeration and air conditioning systems. Growing demand driven by cold chain, retail, and climate needs.</p>
+        <div class="track-duration">RAC / HVAC</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🔥</span>
+        <h3>Welding &amp; Fabrication</h3>
+        <p>Structural welding, metal fabrication, and pipe work. Core capability for manufacturing, construction, and infrastructure industries.</p>
+        <div class="track-duration">Manufacturing</div>
+      </div>
+      <div class="track-card">
+        <span class="track-icon">🌾</span>
+        <h3>Agro-Processing</h3>
+        <p>Food processing, preservation, and quality control for agricultural value chains. Targeting Nigeria's agro-industrial expansion priority.</p>
+        <div class="track-duration">Agriculture / Industry</div>
+      </div>
+    </div>
+    <span class="annot">TEAM: 8 tracks shown here (from the Blueprint). The Nigeria pilot will activate only 2. Suggest indicating which tracks are "Pilot Phase" vs "Future Rollout" with a small label — this sets accurate expectations for visitors while showing the full vision.</span>
+  </div>
+</section>
+
+<!-- ── IMPACT / OUTCOMES ───────────────────────────────────────── -->
+<section id="impact" class="section section--alt">
+  <div class="container">
+    <span class="eyebrow">How We Measure Success</span>
+    <h2>Outcomes first.<br><span class="highlight">Every metric earned.</span></h2>
+    <p style="max-width:640px; margin-top:20px;">Training is designed backward from real jobs, real tools, and measurable placement and wage gains. These are the KPIs tracked quarterly across every cohort.</p>
+
+    <div class="outcomes-grid">
+      <div class="outcome-card featured">
+        <span class="outcome-label">Primary Target</span>
+        <div class="outcome-num">ZERO</div>
+        <div class="outcome-title">Safety Incidents</div>
+        <p class="outcome-desc">Safety is a gate, not a guideline. Repeated safety violations pause learner progression. Target is strictly near zero.</p>
+      </div>
+      <div class="outcome-card">
+        <span class="outcome-label">Placement</span>
+        <div class="outcome-num">70%+</div>
+        <div class="outcome-title">Jobs in 90 Days</div>
+        <p class="outcome-desc">Placement rate measured within 60–90 days of graduation. Nigeria pilot target: at least 70% placed in jobs or apprenticeships.</p>
+      </div>
+      <div class="outcome-card">
+        <span class="outcome-label">Competency</span>
+        <div class="outcome-num">100%</div>
+        <div class="outcome-title">Practical Sign-off</div>
+        <p class="outcome-desc">Every graduate must pass employer-assessed competency verification before receiving credentials. No written-exam shortcut.</p>
+      </div>
+      <div class="outcome-card">
+        <span class="outcome-label">Equity</span>
+        <div class="outcome-num">↑</div>
+        <div class="outcome-title">Female Participation</div>
+        <p class="outcome-desc">Targeted recruitment and non-traditional trade supports to actively increase women's participation across all tracks.</p>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; background:var(--border); margin-top:2px;">
+      <div style="background:var(--navy); padding:28px;">
+        <span class="outcome-label">Tracked Quarterly</span>
+        <div class="outcome-title" style="font-size:16px;">Completion Rate</div>
+        <p style="font-size:13px; color:var(--text-muted);">Enrollment-to-completion attrition measured and reported per cohort.</p>
+      </div>
+      <div style="background:var(--navy); padding:28px;">
+        <span class="outcome-label">Leading Indicator</span>
+        <div class="outcome-title" style="font-size:16px;">Attendance &amp; Punctuality</div>
+        <p style="font-size:13px; color:var(--text-muted);">Day-one readiness signal. Tracked from intake audition week onward.</p>
+      </div>
+      <div style="background:var(--navy); padding:28px;">
+        <span class="outcome-label">Employer Feedback</span>
+        <div class="outcome-title" style="font-size:16px;">Satisfaction Score</div>
+        <p style="font-size:13px; color:var(--text-muted);">Direct scoring from the Employer Advisory Group. Target: above 4.0/5.0.</p>
+      </div>
+    </div>
+    <span class="annot">TEAM: The "70%+ jobs in 90 days" figure comes from the Concept Note targets. Verify this is the correct public-facing commitment before publishing. Also: should "Earnings Change" (baseline vs post-graduation income) be shown here as a KPI? It's in the Blueprint but omitted here to keep focus.</span>
+  </div>
+</section>
+
+<!-- ── VALUES ─────────────────────────────────────────────────── -->
+<section id="values" class="section">
+  <div class="container">
+    <span class="eyebrow">What We Stand For</span>
+    <h2>Six principles that<br><span class="highlight">cannot be negotiated.</span></h2>
+
+    <div class="values-grid">
+      <div class="value-card">
+        <h3>Employment Outcomes First</h3>
+        <p>Training is designed backward from real jobs, real tools, and measurable placement and wage gains. If it doesn't lead to work, it doesn't belong in the curriculum.</p>
+      </div>
+      <div class="value-card">
+        <h3>Industry-Aligned Excellence</h3>
+        <p>Employers co-design competencies, assessments, and credentials to ensure relevance and quality. Quarterly refresh cycles keep standards current with market demand.</p>
+      </div>
+      <div class="value-card">
+        <h3>Access and Equity</h3>
+        <p>Affordable, inclusive pathways that expand opportunity for youth, women, and underserved communities. Targeted supports to reach those excluded from traditional education routes.</p>
+      </div>
+      <div class="value-card">
+        <h3>Hands-On Mastery</h3>
+        <p>Competency-based learning grounded in practice, safety, and demonstrated performance — not seat time. 70% of every programme is workshop-based.</p>
+      </div>
+      <div class="value-card">
+        <h3>Stackable Pathways</h3>
+        <p>Clear, modular credentials that enable learners to earn quickly and return to advance over time. Career mobility built into the architecture from the start.</p>
+      </div>
+      <div class="value-card">
+        <h3>Accountability &amp; Improvement</h3>
+        <p>Data-driven decisions, transparent standards, and rapid iteration based on results. We publish what we measure — including what isn't working.</p>
+      </div>
+    </div>
+    <span class="annot">TEAM: Values copy is drawn directly from the Mission/Vision/Values document. Please confirm these are final — or flag if wording is still being refined. This section could also become its own "About Us" page with the full mission and vision statements displayed prominently.</span>
+  </div>
+</section>
+
+<!-- ── PARTNERS ────────────────────────────────────────────────── -->
+<section id="partners" class="section section--alt">
+  <div class="container">
+    <span class="eyebrow">Ecosystem Partners</span>
+    <h2>A coalition built for<br><span class="highlight">shared accountability.</span></h2>
+    <p style="max-width:640px; margin-top:20px;">WTDA does not operate in isolation. The model works because each partner has a defined role, a real stake, and a measurable contribution. We start with an Employer Advisory Group of 3–5 committed employers to prove results before expanding.</p>
+
+    <div class="partners-strip">
+      <div class="partner-types">
+        <div class="partner-type">
+          <span class="partner-type-label">Lead Proponent</span>
+          <p>Africa Workforce Training &amp; Development (AWT&amp;D) — initiative design, quality assurance, and outcomes accountability.</p>
+        </div>
+        <div class="partner-type">
+          <span class="partner-type-label">Government</span>
+          <p>Relevant TVET and skills agencies, state governments, and economic ministries. In Nigeria: NBTE and relevant federal/state bodies.</p>
+        </div>
+        <div class="partner-type">
+          <span class="partner-type-label">Employers</span>
+          <p>Sector associations, anchor firms, and MSME networks. Employers co-design standards, host WBL placements, and score Capstone assessments.</p>
+        </div>
+        <div class="partner-type">
+          <span class="partner-type-label">Training &amp; Funders</span>
+          <p>Accredited centres, technical institutions, master trainers, and catalytic funders supporting pilot launch and scale.</p>
+        </div>
+      </div>
+    </div>
+    <span class="annot">TEAM: Partner logos would go here once confirmed. The "Employer Advisory Group" section could be expanded if you want to publicly name anchor employers (requires their permission). Consider a separate "Partner With Us" page with a distinct proposition for each partner type (what they give / what they get).</span>
+  </div>
+</section>
+
+<!-- ── PILOT ──────────────────────────────────────────────────── -->
+<section id="pilot" class="section">
+  <div class="container">
+    <span class="eyebrow">Nigeria Pilot — 2026</span>
+    <h2>Where the model<br><span class="highlight">gets proven.</span></h2>
+    <p style="max-width:640px; margin-top:20px;">The Nigeria pilot is the proof of concept — and more than that, it produces the Replication Kit that WTDA takes to its next country. Every decision in the pilot is made to enable scaling.</p>
+
+    <div class="pilot-layout">
+      <div class="pilot-info">
+        <h3>Pilot Specifications</h3>
+        <div class="pilot-spec">
+          <div class="pilot-spec-row">
+            <span class="spec-key">Locations</span>
+            <span class="spec-val">Abuja + Kaduna</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Model</span>
+            <span class="spec-val">Hub-and-spoke</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Learners (Phase 1)</span>
+            <span class="spec-val">50–60 total (2 cohorts)</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Tracks (Pilot)</span>
+            <span class="spec-val">Max 2 tracks selected</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Duration</span>
+            <span class="spec-val">6-month pilot phase</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Scale-up</span>
+            <span class="spec-val">24–36 months</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Target (Year 1)</span>
+            <span class="spec-val">150 youth trained</span>
+          </div>
+          <div class="pilot-spec-row">
+            <span class="spec-key">Placement Target</span>
+            <span class="spec-val">≥70% in jobs / apprenticeships</span>
+          </div>
+        </div>
+        <span class="annot">TEAM: Budget figure ("approximately USD ____ million") is blank in the source documents. Confirm if this should be included on the public site, and if so, at what level of specificity.</span>
+      </div>
+      <div class="pilot-timeline">
+        <span class="eyebrow" style="margin-bottom:24px;">The 6-Month Roadmap</span>
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="t-dot"></div>
+            <div class="t-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="t-period">Weeks 1–6 / Month 1–2</div>
+            <h4>Phase 1: Discovery &amp; Design</h4>
+            <p>Validate local demand, choose tracks, secure site/equipment, train instructors, finalize assessments.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="t-dot"></div>
+            <div class="t-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="t-period">Weeks 6–20 / Month 2–5</div>
+            <h4>Phase 2: Cohort 1</h4>
+            <p>Foundation Core, Track Training, and Capstone. Work-based learning placements begin week 6.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="t-dot"></div>
+            <div class="t-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="t-period">Month 3–5 (concurrent)</div>
+            <h4>Phase 3: Cohort 2 &amp; Refine</h4>
+            <p>Apply lessons from Cohort 1, tighten standards, stabilize costs, prepare replication documentation.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">
+            <div class="t-dot" style="background:var(--gold); box-shadow: 0 0 0 4px rgba(240,180,41,0.3);"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="t-period">Month 6</div>
+            <h4>Decision Gate: Scale</h4>
+            <p>If targets are achieved across two cohorts, authorize packaging of the model for replication to additional countries and sites.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CALL TO ACTION ─────────────────────────────────────────── -->
+<section id="cta">
+  <div class="container">
+    <span class="eyebrow" style="justify-content:center; display:flex;">Get Involved</span>
+    <h2>Support a model that<br><span class="highlight">converts learning into work.</span></h2>
+    <p>Whether you are an employer, funder, government partner, or training institution — WTDA has a defined role and a genuine stake for you.</p>
+    <div class="cta-buttons">
+      <a href="#" class="btn-primary">Become an Employer Partner</a>
+      <a href="#" class="btn-outline">Explore Funding Opportunities</a>
+      <a href="#" class="btn-outline">Download the Brief</a>
+    </div>
+    <span class="annot" style="display:inline-block; margin-top:28px; text-align:left; max-width:640px;">TEAM: Three CTA buttons shown. Confirm: (1) Does "Become an Employer Partner" link to a form or a PDF? (2) Should there be a separate CTA for individual learners wanting to apply? (3) "Download the Brief" — which document would this link to?</span>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">WT<span>D</span>A</div>
+      <div class="footer-tagline">Workforce Training &amp; Development for Africa</div>
+      <div class="footer-tagline" style="margin-top:6px; color:var(--border);">Short-term training · Stackable credentials · Skilled jobs</div>
+    </div>
+    <div class="footer-contact">
+      <p>Africa Workforce Training &amp; Development</p>
+      <p style="margin-top:6px;"><a href="#">[Name]</a> · <a href="#">[Email]</a> · <a href="#">[Phone]</a></p>
+      <p style="margin-top:4px; font-size:11px; color:var(--slate);">Prepared for ADIS26 — African Diaspora Investment Symposium</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
