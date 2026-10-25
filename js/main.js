@@ -17,34 +17,42 @@
       'blueprint': {
         title: 'The AWTD Blueprint',
         year: '2026',
-        status: 'Working Document · Request Release Copy',
+        status: 'Working Document · Awaiting Public Release Clearance',
         summary: 'The complete operational model: employer-led competency standards, the six-stage learner journey, and quality safeguards engineered to prevent theoretical drift.'
       },
       'market-survey': {
         title: 'Market Needs Survey',
         year: '2026',
-        status: 'Working Document · Request Release Copy',
+        status: 'Working Document · Awaiting Public Release Clearance',
         summary: 'Employer demand mapping across candidate technical sectors, quantifying where critical technician gaps slow industrial and infrastructure growth.'
       },
       'concept-note': {
         title: 'Concept Note — Nigeria Pilot',
         year: '2026',
-        status: 'Working Document · Request Release Copy',
+        status: 'Working Document · Awaiting Public Release Clearance',
         summary: 'Hub-and-spoke pilot scope, two-cohort design (50–60 learners), ≥70% placement target, and the Month 6 Decision Gate governing continental scale-up.'
       },
       'capability-statement': {
         title: 'Capability Statement (The Brief)',
         year: '2026',
-        status: 'Pre-Release Verification · Request Copy',
+        status: 'Pre-Release Verification · 5 Factual Edits in Review',
         summary: 'Executive overview of AWTD, priority technical sectors, measurable KPIs, and multi-jurisdiction governance across the United States, Nigeria, and South Africa.'
       }
     }
   };
 
+  /* Load persisted single-source pilotCities if updated in Board Review mode */
+  try {
+    var savedCities = localStorage.getItem('awtd-pilot-cities');
+    if (savedCities && savedCities.trim().length > 0) {
+      AWTD_CONFIG.pilotCities = savedCities.trim();
+    }
+  } catch (e) {}
+
   window.AWTD_CONFIG = AWTD_CONFIG;
 
-  /* ---- 2. Populate Single-Source Config Fields ---- */
-  function initConfigBindings() {
+  /* ---- 2. Populate & Live-Edit Single-Source Config Fields ---- */
+  function renderConfigBindings() {
     var cityNodes = document.querySelectorAll('[data-config="pilot-cities"]');
     cityNodes.forEach(function (node) {
       node.textContent = AWTD_CONFIG.pilotCities;
@@ -59,53 +67,60 @@
     legalNodes.forEach(function (node) {
       node.textContent = AWTD_CONFIG.legalName;
     });
+
+    var cityInput = document.getElementById('reviewCityInput');
+    if (cityInput && document.activeElement !== cityInput) {
+      cityInput.value = AWTD_CONFIG.pilotCities;
+    }
   }
 
-  /* ---- 3. Board Review / Outstanding Items (#reviewToggle) Controller ---- */
-  function initReviewToggle() {
-    var toggle = document.getElementById('reviewToggle');
-    var countBadge = document.getElementById('reviewCount');
-    var nextBtn = document.getElementById('reviewNextBtn');
-    var pendItems = Array.prototype.slice.call(document.querySelectorAll('.pend'));
-    var currentPendIndex = -1;
+  function initConfigBindings() {
+    renderConfigBindings();
 
-    if (countBadge) {
-      countBadge.textContent = String(pendItems.length);
-    }
+    var cityInput = document.getElementById('reviewCityInput');
+    var citySaveBtn = document.getElementById('reviewCitySaveBtn');
 
-    if (!toggle) return;
-
-    try {
-      if (localStorage.getItem('awtd-review') === '1') {
-        toggle.checked = true;
+    function applyCityUpdate() {
+      if (!cityInput) return;
+      var nextVal = cityInput.value.trim();
+      if (!nextVal) {
+        cityInput.value = AWTD_CONFIG.pilotCities;
+        return;
       }
-    } catch (e) {}
-
-    function syncReviewState() {
-      var isReview = Boolean(toggle.checked);
-      document.body.classList.toggle('review', isReview);
-      toggle.setAttribute('aria-checked', isReview ? 'true' : 'false');
+      AWTD_CONFIG.pilotCities = nextVal;
       try {
-        localStorage.setItem('awtd-review', isReview ? '1' : '0');
+        localStorage.setItem('awtd-pilot-cities', nextVal);
       } catch (e) {}
+      renderConfigBindings();
+      if (citySaveBtn) {
+        var origText = citySaveBtn.textContent;
+        citySaveBtn.textContent = 'Synced ✓';
+        setTimeout(function () {
+          citySaveBtn.textContent = origText;
+        }, 1400);
+      }
     }
 
-    toggle.addEventListener('change', syncReviewState);
-    syncReviewState();
-
-    if (nextBtn && pendItems.length > 0) {
-      nextBtn.addEventListener('click', function () {
-        currentPendIndex = (currentPendIndex + 1) % pendItems.length;
-        var target = pendItems[currentPendIndex];
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          target.style.outlineColor = '#FFFFFF';
-          setTimeout(function () {
-            target.style.outlineColor = '';
-          }, 1200);
+    if (citySaveBtn) {
+      citySaveBtn.addEventListener('click', applyCityUpdate);
+    }
+    if (cityInput) {
+      cityInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyCityUpdate();
         }
       });
     }
+  }
+
+  /* ---- 3. Legacy Review Cleanup ---- */
+  function initReviewToggle() {
+    // Production release: Development review mode permanently retired
+    try {
+      localStorage.removeItem('awtd-review');
+    } catch (e) {}
+    document.body.classList.remove('review');
   }
 
   /* ---- 4. Sticky Header, Mobile Menu & Active Section Spy ---- */
@@ -173,7 +188,7 @@
     }
   }
 
-  /* ---- 5. Training Tracks Filter & Movable "Pilot phase" Chip ---- */
+  /* ---- 5. Training Tracks Filter, Movable "Pilot phase" Chip & 3D Flip Dossiers ---- */
   function initTracksController() {
     var trackCards = Array.prototype.slice.call(document.querySelectorAll('.track-card'));
     var filterBtns = Array.prototype.slice.call(document.querySelectorAll('[data-track-filter]'));
@@ -199,8 +214,8 @@
         var isPilot = activePilotIds.indexOf(id) !== -1;
         card.setAttribute('data-pilot', isPilot ? 'true' : 'false');
 
-        var chip = card.querySelector('.chip');
-        if (chip) {
+        var chips = card.querySelectorAll('.chip');
+        chips.forEach(function (chip) {
           if (isPilot) {
             chip.textContent = 'Pilot phase';
             chip.classList.remove('chip--future');
@@ -208,12 +223,12 @@
             chip.textContent = 'Future rollout';
             chip.classList.add('chip--future');
           }
-        }
+        });
 
-        var toggleBtn = card.querySelector('.track-pilot-toggle');
-        if (toggleBtn) {
+        var toggleBtns = card.querySelectorAll('.track-pilot-toggle');
+        toggleBtns.forEach(function (toggleBtn) {
           toggleBtn.textContent = isPilot ? 'Remove Pilot chip' : 'Set as Pilot track';
-        }
+        });
       });
 
       var pilotCountEl = document.querySelector('[data-filter-count="pilot"]');
@@ -248,30 +263,47 @@
     });
 
     trackCards.forEach(function (card) {
-      var toggleBtn = card.querySelector('.track-pilot-toggle');
-      if (!toggleBtn) return;
-      toggleBtn.addEventListener('click', function () {
-        var id = card.getAttribute('data-track-id');
-        var idx = activePilotIds.indexOf(id);
-        if (idx !== -1) {
-          activePilotIds.splice(idx, 1);
-          if (statusMsg) statusMsg.textContent = '';
-        } else {
-          if (activePilotIds.length >= AWTD_CONFIG.maxPilotTracks) {
-            var removed = activePilotIds.shift();
-            activePilotIds.push(id);
-            if (statusMsg) {
-              statusMsg.textContent = 'Pilot cap is 2 tracks. Shifted chip from ' + removed.replace('-', ' ') + ' to ' + id.replace('-', ' ') + '.';
-            }
-          } else {
-            activePilotIds.push(id);
+      /* Movable Pilot Chip Toggle */
+      var toggleBtns = card.querySelectorAll('.track-pilot-toggle');
+      toggleBtns.forEach(function (toggleBtn) {
+        toggleBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var id = card.getAttribute('data-track-id');
+          var idx = activePilotIds.indexOf(id);
+          if (idx !== -1) {
+            activePilotIds.splice(idx, 1);
             if (statusMsg) statusMsg.textContent = '';
+          } else {
+            if (activePilotIds.length >= AWTD_CONFIG.maxPilotTracks) {
+              var removed = activePilotIds.shift();
+              activePilotIds.push(id);
+              if (statusMsg) {
+                statusMsg.textContent = 'Pilot cap is 2 tracks. Shifted chip from ' + removed.replace(/-/g, ' ') + ' to ' + id.replace(/-/g, ' ') + '.';
+              }
+            } else {
+              activePilotIds.push(id);
+              if (statusMsg) statusMsg.textContent = '';
+            }
           }
-        }
-        try {
-          localStorage.setItem('awtd-pilot-tracks', JSON.stringify(activePilotIds));
-        } catch (e) {}
-        renderTrackChips();
+          try {
+            localStorage.setItem('awtd-pilot-tracks', JSON.stringify(activePilotIds));
+          } catch (err) {}
+          renderTrackChips();
+        });
+      });
+
+      /* 3D Flip Card Dossier Toggle */
+      var flipBtns = card.querySelectorAll('.track-flip-btn');
+      flipBtns.forEach(function (flipBtn) {
+        flipBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var willFlip = !card.classList.contains('is-flipped');
+          card.classList.toggle('is-flipped', willFlip);
+          var allFlipBtns = card.querySelectorAll('.track-flip-btn');
+          allFlipBtns.forEach(function (b) {
+            b.setAttribute('aria-expanded', willFlip ? 'true' : 'false');
+          });
+        });
       });
     });
 
@@ -397,7 +429,7 @@
     }
   }
 
-  /* ---- 7. Working with AWTD CTA Cards & Inquiry Form ---- */
+  /* ---- 7. Working with AWTD Pathways & Validated Inquiry Form with Local Ledger ---- */
   function selectInquiryTopic(topicValue) {
     var panel = document.getElementById('inquiryPanel');
     var select = document.getElementById('inquiryRole');
@@ -408,6 +440,11 @@
       window.location.href = 'get-involved.html?doc=' + encodeURIComponent(topicValue.replace('Document Request: ', '')) + '#inquiryPanel';
       return;
     }
+
+    var pathwayBtns = document.querySelectorAll('[data-inquiry-topic]');
+    pathwayBtns.forEach(function (btn) {
+      btn.classList.toggle('is-selected', btn.getAttribute('data-inquiry-topic') === topicValue);
+    });
 
     if (select) {
       var matched = false;
@@ -434,10 +471,30 @@
     }
   }
 
+  function getSavedInquiries() {
+    try {
+      var raw = localStorage.getItem('awtd-inquiries');
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function updateInquiryLedgerUI() {
+    var countEl = document.getElementById('inquiryLedgerCount');
+    var list = getSavedInquiries();
+    if (countEl) {
+      countEl.textContent = String(list.length);
+    }
+  }
+
   function initInquiryForm() {
     var ctaTriggers = document.querySelectorAll('[data-inquiry-topic]');
     var form = document.getElementById('awtdInquiryForm');
     var statusEl = document.getElementById('inquiryStatus');
+    var exportBtn = document.getElementById('exportInquiriesBtn');
 
     ctaTriggers.forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -445,6 +502,30 @@
         selectInquiryTopic(btn.getAttribute('data-inquiry-topic'));
       });
     });
+
+    updateInquiryLedgerUI();
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        var records = getSavedInquiries();
+        if (records.length === 0) {
+          if (statusEl) {
+            statusEl.classList.remove('is-error');
+            statusEl.textContent = 'Local inquiry ledger is currently empty (0 saved inquiries).';
+          }
+          return;
+        }
+        var blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'awtd-inquiries-ledger.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
 
     if (!form) return;
 
@@ -471,15 +552,36 @@
 
       if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         if (statusEl) {
-          statusEl.textContent = 'Please provide your full name and a valid work email address.';
+          statusEl.textContent = 'Validation required: Please provide your full name and a valid work email address.';
           statusEl.classList.add('is-error');
         }
         return;
       }
 
+      /* Persist locally to localStorage ledger (since external SMTP/API backend is unconfigured) */
+      var entry = {
+        timestamp: new Date().toISOString(),
+        name: name,
+        organisation: org || 'N/A',
+        email: email,
+        pathway: role,
+        message: msg || 'Requesting a conversation regarding ' + role + '.'
+      };
+
+      try {
+        var existing = getSavedInquiries();
+        existing.push(entry);
+        localStorage.setItem('awtd-inquiries', JSON.stringify(existing));
+      } catch (err) {}
+
+      updateInquiryLedgerUI();
+
       if (statusEl) {
         statusEl.classList.remove('is-error');
-        statusEl.textContent = 'Inquiry prepared for ' + AWTD_CONFIG.contactEmail + ' (' + role + '). Opening mail client...';
+        statusEl.textContent =
+          'Saved to local browser ledger. Because no external SMTP/API server is configured yet, launching mail client for ' +
+          AWTD_CONFIG.contactEmail +
+          '...';
       }
 
       var subject = encodeURIComponent('[AWTD Inquiry] ' + role + (org ? ' — ' + org : ''));
@@ -491,19 +593,43 @@
         '',
         msg || 'Requesting a conversation regarding ' + role + '.'
       ];
-      var mailtoUrl = 'mailto:' + AWTD_CONFIG.contactEmail + '?subject=' + subject + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+      var mailtoUrl =
+        'mailto:' +
+        AWTD_CONFIG.contactEmail +
+        '?subject=' +
+        subject +
+        '&body=' +
+        encodeURIComponent(bodyLines.join('\n'));
 
       window.location.href = mailtoUrl;
     });
   }
 
-  /* ---- 8. Scroll Reveal & Hero Stat Counter Animations ---- */
+  /* ---- 8. Scroll Reveal, Staggered Entrances & Stat Counter Animations ---- */
   function initAnimations() {
-    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var prefersReduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var revealEls = document.querySelectorAll('.reveal');
+    var staggerGroups = document.querySelectorAll(
+      '.leadership-editorial-grid, .roadmap-timeline, .phases, .pipeline-track, .journey, .eag-strip, .logos'
+    );
+
+    staggerGroups.forEach(function (group) {
+      var children = Array.prototype.slice.call(group.children);
+      children.forEach(function (child, idx) {
+        if (child.classList.contains('pend-note')) return;
+        child.classList.add('stagger-item');
+        child.style.transitionDelay = String(Math.min(idx * 65, 420)) + 'ms';
+      });
+    });
+
+    var staggerItems = document.querySelectorAll('.stagger-item');
 
     if (prefersReduced || !('IntersectionObserver' in window)) {
       revealEls.forEach(function (el) {
+        el.classList.add('is-visible');
+      });
+      staggerItems.forEach(function (el) {
         el.classList.add('is-visible');
       });
       return;
@@ -518,10 +644,14 @@
           }
         });
       },
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -36px 0px' }
     );
 
     revealEls.forEach(function (el) {
+      revealObserver.observe(el);
+    });
+
+    staggerItems.forEach(function (el) {
       revealObserver.observe(el);
     });
 
