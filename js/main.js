@@ -8,44 +8,48 @@
 
   /* ---- 1. Single-Source Configuration ---- */
   var AWTD_CONFIG = {
-    pilotCities: 'Abuja + Kaduna',
+    pilotCities: 'Abuja',
     maxPilotTracks: 2,
-    defaultPilotTracks: ['electrical-solar', 'industrial-maintenance'],
-    contactEmail: 'hello@awtd.org',
+    defaultPilotTracks: ['electrical-solar', 'welding-fabrication'],
+    contactEmail: 'info@awtd.org',
+    formEndpoint: '', /* Set Formspree / Vercel API endpoint URL when configured */
     legalName: 'Africa Workforce Training & Development, Inc.',
     documents: {
       'blueprint': {
         title: 'The AWTD Blueprint',
         year: '2026',
-        status: 'Working Document · Awaiting Public Release Clearance',
-        summary: 'The complete operational model: employer-led competency standards, the six-stage learner journey, and quality safeguards engineered to prevent theoretical drift.'
+        status: 'Working Document · Board Review',
+        summary: 'The complete operational model: employer-led competency standards, the learner journey, and quality safeguards engineered to prevent theoretical drift.'
       },
       'market-survey': {
         title: 'Market Needs Survey',
         year: '2026',
-        status: 'Working Document · Awaiting Public Release Clearance',
+        status: 'Working Document · Board Review',
         summary: 'Employer demand mapping across candidate technical sectors, quantifying where critical technician gaps slow industrial and infrastructure growth.'
       },
       'concept-note': {
-        title: 'Concept Note — Nigeria Pilot',
+        title: 'Concept Note: Nigeria Pilot',
         year: '2026',
-        status: 'Working Document · Awaiting Public Release Clearance',
-        summary: 'Hub-and-spoke pilot scope, two-cohort design (50–60 learners), ≥70% placement target, and the Month 6 Decision Gate governing continental scale-up.'
+        status: 'Working Document · Board Review',
+        summary: 'Abuja pilot scope, one cohort of 20 trainees (Electrical and Welding), eight-week certificate (72 contact hours, 3 evenings/week 18:00 to 21:00), and the Month 6 Decision Gate.'
       },
       'capability-statement': {
         title: 'Capability Statement (The Brief)',
         year: '2026',
-        status: 'Pre-Release Verification · 5 Factual Edits in Review',
+        status: 'Pre-Release Verification',
         summary: 'Executive overview of AWTD, priority technical sectors, measurable KPIs, and multi-jurisdiction governance across the United States, Nigeria, and South Africa.'
       }
     }
   };
 
-  /* Load persisted single-source pilotCities if updated in Board Review mode */
+  /* Clear stale October prototype localStorage overrides so November 15 facts are authoritative */
   try {
-    var savedCities = localStorage.getItem('awtd-pilot-cities');
-    if (savedCities && savedCities.trim().length > 0) {
-      AWTD_CONFIG.pilotCities = savedCities.trim();
+    if (localStorage.getItem('awtd-pilot-cities') === 'Abuja + Kaduna') {
+      localStorage.removeItem('awtd-pilot-cities');
+    }
+    var oldTracks = localStorage.getItem('awtd-pilot-tracks');
+    if (oldTracks && oldTracks.indexOf('industrial-maintenance') !== -1) {
+      localStorage.removeItem('awtd-pilot-tracks');
     }
   } catch (e) {}
 
@@ -67,6 +71,34 @@
     legalNodes.forEach(function (node) {
       node.textContent = AWTD_CONFIG.legalName;
     });
+
+    /* Live visitor local date & time integrated into scrolling announcement */
+    var dateTimeNodes = document.querySelectorAll('[data-live-datetime]');
+    if (dateTimeNodes.length > 0) {
+      function updateLocalDateTime() {
+        var now = new Date();
+        var formatted = '';
+        try {
+          formatted = now.toLocaleString(undefined, {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZoneName: 'short'
+          });
+        } catch (e) {
+          formatted = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+        dateTimeNodes.forEach(function (el) {
+          el.textContent = formatted;
+        });
+      }
+      updateLocalDateTime();
+      setInterval(updateLocalDateTime, 1000);
+    }
 
     var cityInput = document.getElementById('reviewCityInput');
     if (cityInput && document.activeElement !== cityInput) {
@@ -145,17 +177,49 @@
       });
 
       navLinksContainer.addEventListener('click', function (e) {
-        if (e.target.tagName === 'A' && navLinksContainer.classList.contains('is-open')) {
+        var trigger = e.target.closest ? e.target.closest('.nav-dropdown-trigger') : null;
+        if (trigger) {
+          var parentItem = trigger.closest('.nav-item');
+          var isOpen = parentItem.classList.contains('is-open');
+          document.querySelectorAll('.nav-item.is-open').forEach(function (item) {
+            item.classList.remove('is-open');
+            var btn = item.querySelector('.nav-dropdown-trigger');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          });
+          if (!isOpen) {
+            parentItem.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+          }
+          return;
+        }
+        if (e.target.closest('a') && navLinksContainer.classList.contains('is-open')) {
           navToggle.setAttribute('aria-expanded', 'false');
           navLinksContainer.classList.remove('is-open');
         }
       });
 
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.nav-item')) {
+          document.querySelectorAll('.nav-item.is-open').forEach(function (item) {
+            item.classList.remove('is-open');
+            var btn = item.querySelector('.nav-dropdown-trigger');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          });
+        }
+      });
+
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && navLinksContainer.classList.contains('is-open')) {
-          navToggle.setAttribute('aria-expanded', 'false');
-          navLinksContainer.classList.remove('is-open');
-          navToggle.focus();
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.nav-item.is-open').forEach(function (item) {
+            item.classList.remove('is-open');
+            var btn = item.querySelector('.nav-dropdown-trigger');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          });
+          if (navLinksContainer.classList.contains('is-open')) {
+            navToggle.setAttribute('aria-expanded', 'false');
+            navLinksContainer.classList.remove('is-open');
+            navToggle.focus();
+          }
         }
       });
     }
@@ -292,17 +356,25 @@
         });
       });
 
-      /* 3D Flip Card Dossier Toggle */
+      /* 3D Flip Card Dossier Toggle (Tap anywhere on card + Flip buttons) */
+      function toggleCardFlip() {
+        var willFlip = !card.classList.contains('is-flipped');
+        card.classList.toggle('is-flipped', willFlip);
+        var allFlipBtns = card.querySelectorAll('.track-flip-btn');
+        allFlipBtns.forEach(function (b) {
+          b.setAttribute('aria-expanded', willFlip ? 'true' : 'false');
+        });
+      }
+
+      card.addEventListener('click', function () {
+        toggleCardFlip();
+      });
+
       var flipBtns = card.querySelectorAll('.track-flip-btn');
       flipBtns.forEach(function (flipBtn) {
         flipBtn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var willFlip = !card.classList.contains('is-flipped');
-          card.classList.toggle('is-flipped', willFlip);
-          var allFlipBtns = card.querySelectorAll('.track-flip-btn');
-          allFlipBtns.forEach(function (b) {
-            b.setAttribute('aria-expanded', willFlip ? 'true' : 'false');
-          });
+          toggleCardFlip();
         });
       });
     });
@@ -601,28 +673,314 @@
         '&body=' +
         encodeURIComponent(bodyLines.join('\n'));
 
-      window.location.href = mailtoUrl;
+      if (AWTD_CONFIG.formEndpoint) {
+        fetch(AWTD_CONFIG.formEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(entry)
+        }).then(function (res) {
+          if (statusEl) {
+            statusEl.textContent = res.ok
+              ? 'Inquiry submitted successfully to ' + AWTD_CONFIG.contactEmail + '.'
+              : 'Saved locally; opening mail client for ' + AWTD_CONFIG.contactEmail + '...';
+          }
+          if (!res.ok) window.location.href = mailtoUrl;
+        }).catch(function () {
+          window.location.href = mailtoUrl;
+        });
+      } else {
+        window.location.href = mailtoUrl;
+      }
     });
   }
 
-  /* ---- 8. Scroll Reveal, Staggered Entrances & Stat Counter Animations ---- */
+  /* ---- 7b. Portal Forms (Employers, Entrepreneurship, Academic Articles) ---- */
+  function initPortalForms() {
+    var configs = [
+      {
+        formId: 'employerNeedsForm',
+        statusId: 'employerNeedsStatus',
+        storageKey: 'awtd-employer-needs',
+        subjectPrefix: '[AWTD Employer Training Need]',
+        buildEntry: function (form) {
+          return {
+            timestamp: new Date().toISOString(),
+            type: 'Employer Training Need',
+            company: (form.querySelector('[name="company"]') || {}).value || '',
+            contactName: (form.querySelector('[name="contactName"]') || {}).value || '',
+            email: (form.querySelector('[name="email"]') || {}).value || '',
+            sector: (form.querySelector('[name="sector"]') || {}).value || '',
+            location: (form.querySelector('[name="location"]') || {}).value || '',
+            needs: (form.querySelector('[name="needs"]') || {}).value || ''
+          };
+        },
+        successMsg: 'Training need logged. Preparing direct dispatch to '
+      },
+      {
+        formId: 'entrepreneurshipForm',
+        statusId: 'entrepreneurshipStatus',
+        storageKey: 'awtd-entrepreneurship-apps',
+        subjectPrefix: '[AWTD Entrepreneurship Application]',
+        buildEntry: function (form) {
+          return {
+            timestamp: new Date().toISOString(),
+            type: 'Entrepreneurship Application',
+            fullName: (form.querySelector('[name="fullName"]') || {}).value || '',
+            email: (form.querySelector('[name="email"]') || {}).value || '',
+            phone: (form.querySelector('[name="phone"]') || {}).value || '',
+            tradeTrack: (form.querySelector('[name="tradeTrack"]') || {}).value || '',
+            ventureConcept: (form.querySelector('[name="ventureConcept"]') || {}).value || ''
+          };
+        },
+        successMsg: 'Entrepreneurship application logged. Preparing dispatch to '
+      },
+      {
+        formId: 'articleSubmissionForm',
+        statusId: 'articleSubmissionStatus',
+        storageKey: 'awtd-article-submissions',
+        subjectPrefix: '[AWTD Academic Paper Submission — Pending Board Review]',
+        buildEntry: function (form) {
+          return {
+            timestamp: new Date().toISOString(),
+            type: 'Academic Paper Submission',
+            publicationState: 'Unpublished — Pending Board Review',
+            authorName: (form.querySelector('[name="authorName"]') || {}).value || '',
+            institution: (form.querySelector('[name="institution"]') || {}).value || '',
+            email: (form.querySelector('[name="email"]') || {}).value || '',
+            field: (form.querySelector('[name="field"]') || {}).value || '',
+            title: (form.querySelector('[name="title"]') || {}).value || '',
+            abstract: (form.querySelector('[name="abstract"]') || {}).value || ''
+          };
+        },
+        successMsg: 'Submission recorded as Unpublished (Pending Board Review). Preparing dispatch to '
+      }
+    ];
+
+    configs.forEach(function (cfg) {
+      var form = document.getElementById(cfg.formId);
+      var statusEl = document.getElementById(cfg.statusId);
+      if (!form) return;
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var entry = cfg.buildEntry(form);
+        var emailVal = (entry.email || '').trim();
+        if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          if (statusEl) {
+            statusEl.textContent = 'Please provide a valid email address before submitting.';
+            statusEl.classList.add('is-error');
+          }
+          return;
+        }
+
+        try {
+          var existing = JSON.parse(localStorage.getItem(cfg.storageKey) || '[]');
+          if (Array.isArray(existing)) {
+            existing.push(entry);
+            localStorage.setItem(cfg.storageKey, JSON.stringify(existing));
+          }
+        } catch (err) {}
+
+        if (statusEl) {
+          statusEl.classList.remove('is-error');
+          statusEl.textContent = cfg.successMsg + AWTD_CONFIG.contactEmail + '...';
+        }
+
+        var bodyLines = Object.keys(entry).map(function (k) {
+          return k + ': ' + entry[k];
+        });
+        var mailtoUrl =
+          'mailto:' +
+          AWTD_CONFIG.contactEmail +
+          '?subject=' +
+          encodeURIComponent(cfg.subjectPrefix) +
+          '&body=' +
+          encodeURIComponent(bodyLines.join('\n'));
+
+        if (AWTD_CONFIG.formEndpoint) {
+          fetch(AWTD_CONFIG.formEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(entry)
+          }).then(function (res) {
+            if (!res.ok) window.location.href = mailtoUrl;
+            else if (statusEl) statusEl.textContent = 'Submitted successfully to ' + AWTD_CONFIG.contactEmail + '.';
+          }).catch(function () {
+            window.location.href = mailtoUrl;
+          });
+        } else {
+          window.location.href = mailtoUrl;
+        }
+      });
+    });
+  }
+
+  /* ---- 8. Complete Motion Design, Page Transitions, Parallax & Stat Counters ---- */
   function initAnimations() {
     var prefersReduced =
       window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var revealEls = document.querySelectorAll('.reveal');
+
+    if (!prefersReduced) {
+      document.body.classList.add('awtd-motion-ready');
+
+      /* 8a. Smooth Cross-Page Transitions */
+      var curtain = document.querySelector('.awtd-page-curtain');
+      if (!curtain) {
+        curtain = document.createElement('div');
+        curtain.className = 'awtd-page-curtain';
+        curtain.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(curtain);
+      }
+
+      window.addEventListener('pageshow', function () {
+        curtain.classList.remove('is-active');
+      });
+
+      document.addEventListener('click', function (e) {
+        if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+          return;
+        }
+        var link = e.target.closest ? e.target.closest('a[href]') : null;
+        if (!link) return;
+        var rawHref = link.getAttribute('href') || '';
+        if (
+          !rawHref ||
+          rawHref.charAt(0) === '#' ||
+          rawHref.indexOf('mailto:') === 0 ||
+          rawHref.indexOf('tel:') === 0 ||
+          link.hasAttribute('download') ||
+          (link.getAttribute('target') && link.getAttribute('target') !== '_self')
+        ) {
+          return;
+        }
+        var targetUrl;
+        try {
+          targetUrl = new URL(link.href, window.location.href);
+        } catch (err) {
+          return;
+        }
+        if (targetUrl.origin !== window.location.origin) return;
+        if (targetUrl.pathname === window.location.pathname && targetUrl.hash) return;
+
+        e.preventDefault();
+        curtain.classList.add('is-active');
+        window.setTimeout(function () {
+          window.location.href = targetUrl.href;
+        }, 210);
+      });
+
+      /* 8b. Scroll Progress Bar & Subtle Hero Parallax */
+      if (!document.querySelector('.scroll-progress-bar')) {
+        var progressBar = document.createElement('div');
+        progressBar.className = 'scroll-progress-bar';
+        progressBar.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(progressBar);
+
+        var heroPhoto = document.querySelector('.hero .hero-photo');
+        var rafPending = false;
+        var updateScrollMotion = function () {
+          rafPending = false;
+          var docEl = document.documentElement;
+          var scrollTop = window.pageYOffset || docEl.scrollTop || 0;
+          var maxScroll = Math.max(docEl.scrollHeight - docEl.clientHeight, 1);
+          var ratio = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
+          progressBar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
+          if (heroPhoto) {
+            var parallaxOffset = Math.min(scrollTop * 0.08, 26);
+            heroPhoto.style.setProperty('--hero-parallax', parallaxOffset.toFixed(1) + 'px');
+          }
+        };
+
+        var onScrollMotion = function () {
+          if (!rafPending) {
+            rafPending = true;
+            window.requestAnimationFrame(updateScrollMotion);
+          }
+        };
+
+        window.addEventListener('scroll', onScrollMotion, { passive: true });
+        window.addEventListener('resize', onScrollMotion, { passive: true });
+        updateScrollMotion();
+      }
+
+      /* 8c. Subtle Cursor Spotlight on Interactive Cards (Pointer Devices) */
+      if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        document.addEventListener(
+          'mousemove',
+          function (e) {
+            var card = e.target.closest
+              ? e.target.closest('.why-landscape-card, .model-card, .card, .outcome-card, .paper')
+              : null;
+            if (!card) return;
+            var rect = card.getBoundingClientRect();
+            card.style.setProperty('--mx', String(Math.round(e.clientX - rect.left)) + 'px');
+            card.style.setProperty('--my', String(Math.round(e.clientY - rect.top)) + 'px');
+          },
+          { passive: true }
+        );
+      }
+    }
+
+    /* 8d. Independent Section Choreography (Headings, Media, Content, Staggered Grids) */
+    document.querySelectorAll('.sec-head').forEach(function (head) {
+      if (head.closest('.hero, .page-hero')) return;
+      var eyebrow = head.querySelector('.eyebrow');
+      var heading = head.querySelector('h2, h3');
+      var lead = head.querySelector('.lead, p');
+      if (eyebrow) {
+        eyebrow.classList.add('reveal', 'reveal-left');
+      }
+      if (heading) {
+        heading.classList.add('reveal');
+        heading.style.transitionDelay = '90ms';
+      }
+      if (lead) {
+        lead.classList.add('reveal');
+        lead.style.transitionDelay = '180ms';
+      }
+    });
+
+    document
+      .querySelectorAll('.media-showcase-grid, .media-showcase-card, .workshop-feature-strip, .workshop-feature-card, .about-media, .figure-frame')
+      .forEach(function (mediaEl) {
+        if (mediaEl.closest('.hero, .page-hero')) return;
+        mediaEl.classList.add('reveal', 'reveal-scale');
+      });
+
+    var autoRevealSelectors = [
+      '.why-landscape-top',
+      '.cta-band',
+      '.strap',
+      '.editorial-split > *',
+      '.engage-layout > *'
+    ];
+    document.querySelectorAll(autoRevealSelectors.join(', ')).forEach(function (el) {
+      if (el.closest('.hero, .page-hero, .nav, .foot')) return;
+      if (!el.classList.contains('reveal') && !el.classList.contains('stagger-item')) {
+        el.classList.add('reveal');
+      }
+    });
+
+    var rowContainers =
+      '.pilot-specs, .coalition-list, .publication-list, .pathway-list';
     var staggerGroups = document.querySelectorAll(
-      '.leadership-editorial-grid, .roadmap-timeline, .phases, .pipeline-track, .journey, .eag-strip, .logos'
+      '.grid, .why-landscape-table, .model-grid, .model-bento-grid, .model-steps, .tracks-grid, .stats, .telemetry-grid, ' +
+      '.leadership-editorial-grid, .roadmap-timeline, .phases, .pipeline-track, .journey, .eag-strip, .logos, ' +
+      '.papers-grid, ' + rowContainers
     );
 
     staggerGroups.forEach(function (group) {
+      var isRowGroup = group.matches ? group.matches(rowContainers) : false;
       var children = Array.prototype.slice.call(group.children);
       children.forEach(function (child, idx) {
         if (child.classList.contains('pend-note')) return;
         child.classList.add('stagger-item');
-        child.style.transitionDelay = String(Math.min(idx * 65, 420)) + 'ms';
+        if (isRowGroup) child.classList.add('stagger-row');
+        child.style.transitionDelay = String(Math.min(idx * 75, 450)) + 'ms';
       });
     });
 
+    var revealEls = document.querySelectorAll('.reveal:not(.band)');
     var staggerItems = document.querySelectorAll('.stagger-item');
 
     if (prefersReduced || !('IntersectionObserver' in window)) {
@@ -644,8 +1002,24 @@
           }
         });
       },
-      { threshold: 0.08, rootMargin: '0px 0px -36px 0px' }
+      { threshold: 0.06, rootMargin: '0px 0px -36px 0px' }
     );
+
+    function revealVisibleOrPassed() {
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      revealEls.forEach(function (el) {
+        if (!el.classList.contains('is-visible') && el.getBoundingClientRect().top < vh * 0.94) {
+          el.classList.add('is-visible');
+          revealObserver.unobserve(el);
+        }
+      });
+      staggerItems.forEach(function (el) {
+        if (!el.classList.contains('is-visible') && el.getBoundingClientRect().top < vh * 0.94) {
+          el.classList.add('is-visible');
+          revealObserver.unobserve(el);
+        }
+      });
+    }
 
     revealEls.forEach(function (el) {
       revealObserver.observe(el);
@@ -654,6 +1028,9 @@
     staggerItems.forEach(function (el) {
       revealObserver.observe(el);
     });
+
+    window.addEventListener('scroll', revealVisibleOrPassed, { passive: true });
+    revealVisibleOrPassed();
 
     var statEls = document.querySelectorAll('[data-stat-target]');
     var statsObserver = new IntersectionObserver(
@@ -666,10 +1043,11 @@
           var suffix = el.getAttribute('data-stat-suffix') || '';
           if (isNaN(target) || target === 0) {
             el.textContent = '0' + suffix;
+            el.classList.add('is-counted');
             return;
           }
           var start = 0;
-          var duration = 750;
+          var duration = 850;
           var startTime = null;
           function tick(ts) {
             if (!startTime) startTime = ts;
@@ -681,12 +1059,13 @@
               window.requestAnimationFrame(tick);
             } else {
               el.textContent = String(target) + suffix;
+              el.classList.add('is-counted');
             }
           }
           window.requestAnimationFrame(tick);
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.45 }
     );
 
     statEls.forEach(function (el) {
@@ -703,6 +1082,7 @@
     initContrastController();
     initDocumentModal();
     initInquiryForm();
+    initPortalForms();
     initAnimations();
   }
 
