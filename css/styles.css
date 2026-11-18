@@ -237,22 +237,20 @@ h1 em {
 .sec-head {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
-  margin-bottom: clamp(36px, 5vw, 56px);
+  gap: 12px;
+  margin-bottom: clamp(32px, 4.5vw, 48px);
 }
 
-@media (min-width: 920px) {
-  .sec-head {
-    grid-template-columns: minmax(280px, 0.95fr) minmax(380px, 1.25fr);
-    align-items: end;
-    gap: 48px;
-  }
-  .sec-head > .h-sec {
-    margin-bottom: 0;
-  }
-  .sec-head > .lead {
-    margin-top: 0;
-  }
+.sec-head > .h-sec,
+.sec-head > div > .h-sec {
+  max-width: none;
+  margin-bottom: 0;
+}
+
+.sec-head > .lead,
+.sec-head > p {
+  max-width: 78ch;
+  margin-top: 0;
 }
 
 /* ---- Buttons (Prominent Gold & Core Green) ---- */
@@ -3349,10 +3347,16 @@ h1, h2, h3, h4 {
   background-image: url('../04%20Logos/awtd-logo-transparent.png');
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: auto 76%;
-  opacity: 0.042;
+  background-size: auto 84%;
+  opacity: 0.11;
   pointer-events: none;
   z-index: 1;
+}
+
+.page-hero::after {
+  background-size: auto 86%;
+  opacity: 0.16;
+  filter: brightness(1.38) contrast(1.06);
 }
 
 #model {
@@ -3657,7 +3661,7 @@ h1, h2, h3, h4 {
 }
 
 .about-statement h3 {
-  color: var(--gold-bright);
+  color: #FFFFFF;
 }
 
 .about-statement p {
@@ -4070,14 +4074,41 @@ h1, h2, h3, h4 {
 /* 3. Horizontal Landscape Layout for The Why */
 .why-landscape-top {
   display: grid;
-  grid-template-columns: 1.35fr 0.65fr;
-  gap: clamp(24px, 4vw, 48px);
+  grid-template-columns: 1.55fr 0.45fr;
+  gap: clamp(20px, 3.5vw, 40px);
   align-items: center;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 
 .why-landscape-top .problem-callout {
   margin-top: 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: var(--ink);
+  border: 1px solid rgba(8, 75, 35, 0.14) !important;
+  box-shadow: 0 6px 18px rgba(8, 75, 35, 0.06);
+}
+
+.why-landscape-top .problem-callout-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: var(--forest);
+  margin-bottom: 4px;
+}
+
+.why-landscape-top .problem-callout strong {
+  font-size: clamp(1.7rem, 2.4vw, 2.15rem);
+  line-height: 1.05;
+  color: var(--forest);
+  margin-bottom: 4px;
+}
+
+.why-landscape-top .problem-callout p {
+  font-size: 0.84rem;
+  line-height: 1.48;
+  color: var(--ink-secondary);
+  margin: 0;
 }
 
 .why-landscape-table {
@@ -4193,8 +4224,13 @@ h1, h2, h3, h4 {
   position: fixed;
   inset: 0;
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(8, 75, 35, 0.96) 0%, rgba(5, 48, 22, 0.98) 100%);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.96) 0%, rgba(238, 244, 240, 0.95) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   opacity: 0;
   transition: opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -4202,6 +4238,50 @@ h1, h2, h3, h4 {
 .awtd-page-curtain.is-active {
   opacity: 1;
   pointer-events: all;
+}
+
+.awtd-loader-core {
+  position: relative;
+  width: clamp(112px, 15vw, 148px);
+  height: clamp(112px, 15vw, 148px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.awtd-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid rgba(8, 75, 35, 0.12);
+  border-top-color: var(--forest);
+  border-right-color: var(--gold);
+  animation: awtdLoaderSpin 1.15s linear infinite;
+}
+
+.awtd-loader-logo {
+  width: 68%;
+  height: 68%;
+  object-fit: contain;
+  animation: awtdLogoPulse 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 8px 18px rgba(8, 75, 35, 0.12));
+}
+
+@keyframes awtdLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes awtdLogoPulse {
+  0%, 100% {
+    transform: scale(0.97);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
 }
 
 @keyframes awtdPageEnter {
@@ -4527,6 +4607,61 @@ section.band.reveal {
 .nav-links > li > a:hover::after,
 .nav-links > li > a.is-active::after {
   transform: scaleX(1);
+}
+
+/* ---- Nigerian Pilot Section Hover Polish & Expanded Text Containers ---- */
+.pilot-spec-bar {
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pilot-spec-bar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px rgba(8, 75, 35, 0.12);
+}
+
+.pilot-spec-cell {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.pilot-spec-cell:hover {
+  transform: translateY(-3px);
+  background-color: rgba(238, 244, 240, 0.72);
+  box-shadow: 0 10px 24px rgba(8, 75, 35, 0.08);
+  z-index: 2;
+}
+
+.pilot-spec-cell:hover .k {
+  color: var(--forest);
+}
+
+.roadmap-phase {
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.34s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease !important;
+}
+
+.roadmap-phase:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 20px 40px rgba(8, 75, 35, 0.13) !important;
+  border-color: rgba(8, 75, 35, 0.28) !important;
+}
+
+.roadmap-phase--gate:hover {
+  border-color: rgba(212, 160, 23, 0.55) !important;
+  box-shadow: 0 20px 42px rgba(212, 160, 23, 0.18) !important;
+}
+
+.page-hero .lead,
+.hero-lead,
+.model-card p,
+.card p,
+.track-spotlight-body p,
+.track-face--front p {
+  max-width: 78ch;
+}
+
+.model-card p,
+.card p,
+.track-face--front p {
+  max-width: none;
 }
 
 /* ---- Reduced Motion Accessibility Override ---- */

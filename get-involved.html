@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="css/styles.css?v=20261118h">
+  <link rel="stylesheet" href="css/styles.css?v=20261118k">
 </head>
 <body>
 
@@ -126,85 +126,45 @@
     </div>
   </header>
 
-  <section class="band cta-band reveal" id="cta" aria-labelledby="heading-cta">
+  <section class="band cta-band reveal" id="cta" aria-labelledby="inquiryFormHeading">
     <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <h2 class="h-sec" id="heading-cta">Select your pathway</h2>
+      <div class="inquiry-panel" id="inquiryPanel" style="max-width:780px;margin:0 auto;">
+        <div class="inquiry-head">
+          <h3 id="inquiryFormHeading">Partner &amp; Funder Inquiry Desk</h3>
+          <span>Direct routing · <span data-config="contact-email">info@awtd.org</span></span>
         </div>
-        <p class="lead">Choose one of the three actions below to pre-configure the direct inquiry form or check the release status of the Capability Statement brief.</p>
-      </div>
-
-      <div class="engage-layout">
-        <div >
-          <div class="pathway-list">
-            <button type="button" class="pathway-item" data-inquiry-topic="Employer Partner">
-              <div class="pathway-body">
-                <h3>Become an Employer Partner</h3>
-                <p>Co-design the competencies, host work-based learning, and score the Capstone. Get first access to the technicians you helped train.</p>
-                <span class="pathway-go">Start a conversation →</span>
-              </div>
-            </button>
-            <button type="button" class="pathway-item" data-inquiry-topic="Funding &amp; Catalytic Support">
-              <div class="pathway-body">
-                <h3>Explore Funding Opportunities</h3>
-                <p>Back a pilot that is built to be copied. Every target is measured and published, including the ones that miss.</p>
-                <span class="pathway-go">Request the pack →</span>
-              </div>
-            </button>
-            <button type="button" class="pathway-item" data-doc-id="capability-statement">
-              <div class="pathway-body">
-                <h3>Download the Brief</h3>
-                <p>The capability statement: the sectors, the objectives, the model, and the people accountable for delivering it.</p>
-                <span class="pathway-go">Download PDF →</span>
-              </div>
-            </button>
+        <form class="inquiry-form" id="awtdInquiryForm" novalidate>
+          <div class="form-field">
+            <label for="inquiryName">Full Name *</label>
+            <input type="text" id="inquiryName" name="name" required autocomplete="name" placeholder="Name and title">
           </div>
-        </div>
-
-        <div class="inquiry-panel" id="inquiryPanel">
-          <div class="inquiry-head">
-            <h3>Partner &amp; Funder Inquiry Desk</h3>
-            <span>Direct routing · <span data-config="contact-email">info@awtd.org</span></span>
+          <div class="form-field">
+            <label for="inquiryOrg">Organisation</label>
+            <input type="text" id="inquiryOrg" name="organisation" autocomplete="organization" placeholder="Company, fund, ministry, or institution">
           </div>
-          <form class="inquiry-form" id="awtdInquiryForm" novalidate>
-            <div class="form-field">
-              <label for="inquiryName">Full Name *</label>
-              <input type="text" id="inquiryName" name="name" required autocomplete="name" placeholder="Name and title">
-            </div>
-            <div class="form-field">
-              <label for="inquiryOrg">Organisation</label>
-              <input type="text" id="inquiryOrg" name="organisation" autocomplete="organization" placeholder="Company, fund, ministry, or institution">
-            </div>
-            <div class="form-field">
-              <label for="inquiryEmail">Work Email *</label>
-              <input type="email" id="inquiryEmail" name="email" required autocomplete="email" placeholder="name@organisation.org">
-            </div>
-            <div class="form-field">
-              <label for="inquiryRole">Stakeholder Pathway</label>
-              <select id="inquiryRole" name="role">
-                <option value="Employer Partner">Employer Partner (EAG / Work-Based Learning)</option>
-                <option value="Funding &amp; Catalytic Support">Funding &amp; Catalytic Support</option>
-                <option value="Government &amp; Regulatory Partner">Government &amp; Regulatory Partner</option>
-                <option value="Training Institution">Training Institution / Technical Hub</option>
-                <option value="Brief / Position Paper Request">Brief / Position Paper Request</option>
-              </select>
-            </div>
-            <div class="form-field form-field--full">
-              <label for="inquiryMessage">Scope of Interest</label>
-              <textarea id="inquiryMessage" name="message" placeholder="Indicate sector tracks, pilot locations, or partnership scope."></textarea>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-p">Send Inquiry →</button>
-              <span class="form-status" id="inquiryStatus" role="status" aria-live="polite"></span>
-            </div>
-          </form>
-
-          <div class="inquiry-ledger-box">
-            <span>Local Browser Inquiry Ledger: <strong id="inquiryLedgerCount">0</strong> logged</span>
-            <button type="button" class="ledger-export-btn" id="exportInquiriesBtn">Export JSON Ledger</button>
+          <div class="form-field">
+            <label for="inquiryEmail">Work Email *</label>
+            <input type="email" id="inquiryEmail" name="email" required autocomplete="email" placeholder="name@organisation.org">
           </div>
-        </div>
+          <div class="form-field">
+            <label for="inquiryRole">Stakeholder Pathway</label>
+            <select id="inquiryRole" name="role">
+              <option value="Employer Partner">Employer Partner (EAG / Work-Based Learning)</option>
+              <option value="Funding &amp; Catalytic Support">Funding &amp; Catalytic Support</option>
+              <option value="Government &amp; Regulatory Partner">Government &amp; Regulatory Partner</option>
+              <option value="Training Institution">Training Institution / Technical Hub</option>
+              <option value="Brief / Position Paper Request">Brief / Position Paper Request</option>
+            </select>
+          </div>
+          <div class="form-field form-field--full">
+            <label for="inquiryMessage">Scope of Interest</label>
+            <textarea id="inquiryMessage" name="message" placeholder="Indicate sector tracks, pilot locations, or partnership scope."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-p">Send Inquiry →</button>
+            <span class="form-status" id="inquiryStatus" role="status" aria-live="polite"></span>
+          </div>
+        </form>
       </div>
     </div>
   </section>
@@ -272,6 +232,6 @@
   </div>
 </footer>
 
-<script src="js/main.js?v=20261118h"></script>
+<script src="js/main.js?v=20261118k"></script>
 </body>
 </html>

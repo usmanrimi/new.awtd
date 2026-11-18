@@ -12,7 +12,9 @@
     maxPilotTracks: 2,
     defaultPilotTracks: ['electrical-solar', 'welding-fabrication'],
     contactEmail: 'info@awtd.org',
-    formEndpoint: '', /* Set Formspree / Vercel API endpoint URL when configured */
+    googleSheetsId: '1dqh6_nAvz0KphMWpfqKSeEB5MegwJ74fBHv-7KchAPk',
+    googleSheetsEndpoint: 'https://script.google.com/macros/s/AKfycbzsra4jMtAHpDtKp25FqE1GeqXjuNl5_18VBO-sypF0XUzEDPM-Y2tfCnpR4yGY17xTbg/exec',
+    formEndpoint: '', /* Optional secondary webhook endpoint */
     legalName: 'Africa Workforce Training & Development, Inc.',
     documents: {
       'blueprint': {
@@ -648,48 +650,46 @@
 
       updateInquiryLedgerUI();
 
-      if (statusEl) {
-        statusEl.classList.remove('is-error');
-        statusEl.textContent =
-          'Saved to local browser ledger. Because no external SMTP/API server is configured yet, launching mail client for ' +
-          AWTD_CONFIG.contactEmail +
-          '...';
-      }
-
-      var subject = encodeURIComponent('[AWTD Inquiry] ' + role + (org ? ' — ' + org : ''));
-      var bodyLines = [
-        'Name: ' + name,
-        'Organisation: ' + (org || 'N/A'),
-        'Email: ' + email,
-        'Category: ' + role,
-        '',
-        msg || 'Requesting a conversation regarding ' + role + '.'
-      ];
-      var mailtoUrl =
-        'mailto:' +
-        AWTD_CONFIG.contactEmail +
-        '?subject=' +
-        subject +
-        '&body=' +
-        encodeURIComponent(bodyLines.join('\n'));
-
-      if (AWTD_CONFIG.formEndpoint) {
-        fetch(AWTD_CONFIG.formEndpoint, {
+      var endpoint = AWTD_CONFIG.googleSheetsEndpoint || AWTD_CONFIG.formEndpoint;
+      if (endpoint) {
+        if (statusEl) {
+          statusEl.classList.remove('is-error');
+          statusEl.textContent = 'Submitting your enquiry...';
+        }
+        fetch(endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(entry)
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            timestamp: entry.timestamp,
+            formType: 'Enquiry',
+            name: name,
+            organisation: org,
+            email: email,
+            role: role,
+            message: msg,
+            pageUrl: window.location.href
+          })
         }).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json().catch(function () { return { status: 'ok' }; });
+        }).then(function (result) {
+          if (result && result.status === 'error') throw new Error(result.message || 'Sheet error');
+          form.reset();
           if (statusEl) {
-            statusEl.textContent = res.ok
-              ? 'Inquiry submitted successfully to ' + AWTD_CONFIG.contactEmail + '.'
-              : 'Saved locally; opening mail client for ' + AWTD_CONFIG.contactEmail + '...';
+            statusEl.classList.remove('is-error');
+            statusEl.textContent = 'Thank you for contacting AWTD. Your enquiry has been received.';
           }
-          if (!res.ok) window.location.href = mailtoUrl;
         }).catch(function () {
-          window.location.href = mailtoUrl;
+          if (statusEl) {
+            statusEl.classList.add('is-error');
+            statusEl.textContent = 'Could not reach the Google Sheet endpoint. Please check your connection or email ' + AWTD_CONFIG.contactEmail + '.';
+          }
         });
       } else {
-        window.location.href = mailtoUrl;
+        if (statusEl) {
+          statusEl.classList.add('is-error');
+          statusEl.textContent = 'Google Sheets Web App endpoint is not yet connected. Please configure AWTD_CONFIG.googleSheetsEndpoint.';
+        }
       }
     });
   }
@@ -781,35 +781,38 @@
           }
         } catch (err) {}
 
-        if (statusEl) {
-          statusEl.classList.remove('is-error');
-          statusEl.textContent = cfg.successMsg + AWTD_CONFIG.contactEmail + '...';
-        }
-
-        var bodyLines = Object.keys(entry).map(function (k) {
-          return k + ': ' + entry[k];
-        });
-        var mailtoUrl =
-          'mailto:' +
-          AWTD_CONFIG.contactEmail +
-          '?subject=' +
-          encodeURIComponent(cfg.subjectPrefix) +
-          '&body=' +
-          encodeURIComponent(bodyLines.join('\n'));
-
-        if (AWTD_CONFIG.formEndpoint) {
-          fetch(AWTD_CONFIG.formEndpoint, {
+        var endpoint = AWTD_CONFIG.googleSheetsEndpoint || AWTD_CONFIG.formEndpoint;
+        if (endpoint) {
+          if (statusEl) {
+            statusEl.classList.remove('is-error');
+            statusEl.textContent = 'Submitting your application...';
+          }
+          var sheetPayload = Object.assign({ pageUrl: window.location.href }, entry);
+          fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify(entry)
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(sheetPayload)
           }).then(function (res) {
-            if (!res.ok) window.location.href = mailtoUrl;
-            else if (statusEl) statusEl.textContent = 'Submitted successfully to ' + AWTD_CONFIG.contactEmail + '.';
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json().catch(function () { return { status: 'ok' }; });
+          }).then(function (result) {
+            if (result && result.status === 'error') throw new Error(result.message || 'Sheet error');
+            form.reset();
+            if (statusEl) {
+              statusEl.classList.remove('is-error');
+              statusEl.textContent = 'Thank you. Your application has been submitted successfully.';
+            }
           }).catch(function () {
-            window.location.href = mailtoUrl;
+            if (statusEl) {
+              statusEl.classList.add('is-error');
+              statusEl.textContent = 'Could not reach the Google Sheet endpoint. Please check your connection or email ' + AWTD_CONFIG.contactEmail + '.';
+            }
           });
         } else {
-          window.location.href = mailtoUrl;
+          if (statusEl) {
+            statusEl.classList.add('is-error');
+            statusEl.textContent = 'Google Sheets Web App endpoint is not yet connected. Please configure AWTD_CONFIG.googleSheetsEndpoint.';
+          }
         }
       });
     });
@@ -823,13 +826,24 @@
     if (!prefersReduced) {
       document.body.classList.add('awtd-motion-ready');
 
-      /* 8a. Smooth Cross-Page Transitions */
+      /* 8a. Branded Loading & Smooth Cross-Page Transitions */
       var curtain = document.querySelector('.awtd-page-curtain');
       if (!curtain) {
         curtain = document.createElement('div');
-        curtain.className = 'awtd-page-curtain';
+        curtain.className = 'awtd-page-curtain is-active';
         curtain.setAttribute('aria-hidden', 'true');
+        curtain.innerHTML =
+          '<div class="awtd-loader-core">' +
+            '<span class="awtd-loader-ring"></span>' +
+            '<img class="awtd-loader-logo" src="04%20Logos/awtd-logo-transparent.png" alt="">' +
+          '</div>';
         document.body.appendChild(curtain);
+
+        window.requestAnimationFrame(function () {
+          window.setTimeout(function () {
+            curtain.classList.remove('is-active');
+          }, 220);
+        });
       }
 
       window.addEventListener('pageshow', function () {
@@ -866,7 +880,7 @@
         curtain.classList.add('is-active');
         window.setTimeout(function () {
           window.location.href = targetUrl.href;
-        }, 210);
+        }, 230);
       });
 
       /* 8b. Scroll Progress Bar & Subtle Hero Parallax */
