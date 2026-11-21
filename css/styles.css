@@ -4654,14 +4654,23 @@ section.band.reveal {
 .model-card p,
 .card p,
 .track-spotlight-body p,
-.track-face--front p {
-  max-width: 78ch;
-}
-
-.model-card p,
-.card p,
+.workshop-feature-caption p,
 .track-face--front p {
   max-width: none;
+}
+
+#tracks .sec-head .lead,
+#tracks .lead,
+.track-spotlight-body p,
+.workshop-feature-caption p,
+.track-differentiator-copy {
+  max-width: 95ch;
+  width: 100%;
+}
+
+.sec-head--stacked .lead {
+  max-width: 90ch;
+  margin-top: 0;
 }
 
 /* ---- Reduced Motion Accessibility Override ---- */
