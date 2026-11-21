@@ -606,8 +606,11 @@
     try {
       var params = new URLSearchParams(window.location.search);
       var docParam = params.get('doc');
+      var roleParam = params.get('role') || params.get('topic');
       if (docParam) {
         selectInquiryTopic('Document Request: ' + docParam);
+      } else if (roleParam) {
+        selectInquiryTopic(roleParam);
       }
     } catch (e) {}
 
